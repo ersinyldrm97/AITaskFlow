@@ -263,9 +263,11 @@ export default function DashboardPage() {
               <h4 className="text-base font-black tracking-tight">TaskFlow <span className="text-yellow-400">Pro</span></h4>
             </div>
             <p className="text-sm text-slate-400 mb-6 leading-relaxed font-medium">Sınırsız proje, gelişmiş analitiği ve ekip işbirliğini şimdi aktifleştirin.</p>
-            <button className="w-full py-4 bg-white text-slate-900 hover:bg-slate-50 border-0 rounded-2xl shadow-xl shadow-black/10 font-black text-xs uppercase tracking-widest active:scale-95 transition-all">
-              Yükseltmeye Başla
-            </button>
+            <Link to="/pricing" className="block w-full">
+              <button className="w-full py-4 bg-white text-slate-900 hover:bg-slate-50 border-0 rounded-2xl shadow-xl shadow-black/10 font-black text-xs uppercase tracking-widest active:scale-95 transition-all">
+                Yükseltmeye Başla
+              </button>
+            </Link>
           </motion.div>
         </div>
       </div>

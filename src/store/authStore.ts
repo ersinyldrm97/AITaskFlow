@@ -30,6 +30,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         email: session.user.email || '',
         password: '',
         role: profile?.role || 'Member',
+        plan: profile?.plan || 'free',
+        subscriptionStatus: profile?.subscription_status,
         avatar: profile?.avatar || 'U',
         createdAt: profile?.created_at || session.user.created_at,
       };
@@ -59,6 +61,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           email: session.user.email || '',
           password: '',
           role: profile?.role || 'Member',
+          plan: profile?.plan || 'free',
+          subscriptionStatus: profile?.subscription_status,
           avatar: profile?.avatar || 'U',
           createdAt: profile?.created_at || session.user.created_at,
         };

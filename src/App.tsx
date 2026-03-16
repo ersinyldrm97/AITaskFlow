@@ -13,6 +13,8 @@ import ProjectDetailPage from './pages/ProjectDetailPage';
 import TasksPage from './pages/TasksPage';
 import TeamPage from './pages/TeamPage';
 import SettingsPage from './pages/SettingsPage';
+import PricingPage from './pages/PricingPage';
+import SuccessPage from './pages/SuccessPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 import ToastContainer from './components/ui/ToastContainer';
@@ -57,6 +59,8 @@ function App() {
             <Route path="/tasks" element={<TasksPage />} />
             <Route path="/team" element={<TeamPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/success" element={<SuccessPage />} />
           </Route>
         </Route>
 
