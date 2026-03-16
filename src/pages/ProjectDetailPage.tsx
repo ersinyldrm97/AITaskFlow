@@ -10,7 +10,9 @@ import {
   Plus, 
   Clock, 
   MoreVertical,
-  AlertCircle
+  AlertCircle,
+  Trash2,
+  Edit2
 } from 'lucide-react';
 import { useState } from 'react';
 import Modal from '../components/ui/Modal';
@@ -23,64 +25,100 @@ export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const project = useProjectStore(state => state.projects.find((p: Project) => p.id === id));
-  const { tasks, addTask, updateTask, fetchTasks } = useTaskStore();
-  const { members, fetchMembers } = useTeamStore();
-  const { fetchProjects } = useProjectStore();
+  const { tasks, addTask, updateTask, deleteTask, fetchTasks, hasLoaded: tasksLoaded, isLoading: tasksLoading } = useTaskStore();
+  const { members, fetchMembers, hasLoaded: membersLoaded, isLoading: membersLoading } = useTeamStore();
+  const { fetchProjects, updateProject, hasLoaded: projectsLoaded, isLoading: projectsLoading } = useProjectStore();
   const { notify } = useNotificationStore();
 
-  useEffect(() => {
-    fetchProjects();
-    fetchTasks();
-    fetchMembers();
-  }, [fetchProjects, fetchTasks, fetchMembers]);
-
-  
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskPriority, setNewTaskPriority] = useState<'low' | 'medium' | 'high'>('medium');
   const [newTaskAssignee, setNewTaskAssignee] = useState('');
   const [newTaskDue, setNewTaskDue] = useState('');
 
-  if (!project) {
-    return (
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="flex flex-col items-center justify-center p-20 space-y-6"
-      >
-        <div className="w-20 h-20 bg-rose-50 text-rose-500 rounded-3xl flex items-center justify-center shadow-inner">
-          <AlertCircle size={48} />
-        </div>
-        <div className="text-center">
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Proje Bulunamadı</h2>
-          <p className="text-slate-500 font-medium mt-2">Aradığınız proje silinmiş veya taşınmış olabilir.</p>
-        </div>
-        <Button onClick={() => navigate('/projects')}>Projelere Dön</Button>
-      </motion.div>
-    );
-  }
+  // Project Edit Modal State
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+  const [editProjectName, setEditProjectName] = useState('');
+  const [editProjectDesc, setEditProjectDesc] = useState('');
+  const [editProjectEnd, setEditProjectEnd] = useState('');
 
-  const projectTasks = tasks.filter((t: Task) => t.projectId === project.id);
+  // Verilerin yüklenip yüklenmediğini kontrol et
+  const isDataLoading = !projectsLoaded || projectsLoading || !tasksLoaded || tasksLoading || !membersLoaded || membersLoading;
+
+  // Sadece bu sayfa özelinde eksik veri varsa tamamla
+  useEffect(() => {
+    if (!isDataLoading && !project && id) {
+      // Eğer veriler yüklendiği halde proje bulunamadıysa, son bir kez daha listeyi güncellemeyi dene
+      fetchProjects();
+    }
+  }, [id, project, isDataLoading, fetchProjects]);
+
+  const projectTasks = tasks.filter((t: Task) => t.projectId === project?.id);
   const columns = [
     { id: 'todo', title: 'Yapılacaklar', bg: 'bg-slate-100/50', dot: 'bg-slate-400' },
     { id: 'in-progress', title: 'Devam Ediyor', bg: 'bg-indigo-50/50', dot: 'bg-indigo-500' },
     { id: 'completed', title: 'Tamamlandı', bg: 'bg-emerald-50/50', dot: 'bg-emerald-500' },
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    addTask({
-      title: newTaskTitle,
-      description: '',
-      status: 'todo',
-      priority: newTaskPriority,
-      projectId: project.id,
-      assigneeId: newTaskAssignee || members[0]?.id || '',
-      dueDate: newTaskDue || new Date().toISOString().split('T')[0],
-    });
-    notify('Görev başarıyla eklendi');
+    
+    if (!project) return;
+    
+    if (editingTask) {
+      await updateTask(editingTask.id, {
+        title: newTaskTitle,
+        priority: newTaskPriority,
+        assigneeId: newTaskAssignee,
+        dueDate: newTaskDue,
+      });
+      notify('Görev güncellendi');
+    } else {
+      await addTask({
+        title: newTaskTitle,
+        description: '',
+        status: 'todo',
+        priority: newTaskPriority,
+        projectId: project.id,
+        assigneeId: newTaskAssignee || members[0]?.id || '',
+        dueDate: newTaskDue || new Date().toISOString().split('T')[0],
+      });
+      notify('Görev başarıyla eklendi');
+    }
+    
+    setEditingTask(null);
     setNewTaskTitle('');
+    setNewTaskDue('');
     setIsModalOpen(false);
+  };
+
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+    setNewTaskTitle(task.title);
+    setNewTaskPriority(task.priority);
+    setNewTaskAssignee(task.assigneeId || '');
+    setNewTaskDue(task.dueDate);
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    if (confirm('Bu görevi silmek istediğinize emin misiniz?')) {
+      await deleteTask(taskId);
+      notify('Görev silindi', 'error');
+    }
+  };
+
+  const handleProjectEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!project) return;
+    await updateProject(project.id, {
+      name: editProjectName,
+      description: editProjectDesc,
+      endDate: editProjectEnd
+    });
+    notify('Proje bilgileri güncellendi');
+    setIsProjectModalOpen(false);
   };
 
   const moveTask = (taskId: string, newStatus: 'todo' | 'in-progress' | 'completed') => {
@@ -117,6 +155,35 @@ export default function ProjectDetailPage() {
 
   return (
     <div className="space-y-8 pb-12">
+      {isDataLoading ? (
+        <div className="min-h-[400px] flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-12 h-12 border-4 border-primary-100 border-t-primary-600 rounded-full animate-spin"></div>
+            <p className="text-slate-400 text-sm font-black uppercase tracking-widest animate-pulse">Veriler Hazırlanıyor...</p>
+          </div>
+        </div>
+      ) : !project ? (
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex flex-col items-center justify-center p-20 space-y-6"
+        >
+          <div className="w-20 h-20 bg-rose-50 text-rose-500 rounded-3xl flex items-center justify-center shadow-inner">
+            <AlertCircle size={48} />
+          </div>
+          <div className="text-center max-w-md">
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Proje Bilgileri Alınamadı</h2>
+            <p className="text-slate-500 font-medium mt-2">
+              İstediğiniz projeye şu an ulaşılamıyor. <code className="bg-slate-100 px-1 py-0.5 rounded text-rose-500 font-bold">.env</code> dosyasındaki anahtarın doğruluğundan eminseniz, proje silinmiş olabilir veya erişim yetkiniz olmayabilir.
+            </p>
+          </div>
+          <div className="flex gap-4">
+            <Button variant="outline" onClick={() => fetchProjects()}>Tekrar Dene</Button>
+            <Button onClick={() => navigate('/projects')}>Projelere Dön</Button>
+          </div>
+        </motion.div>
+      ) : (
+        <>
       {/* Detail Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div className="flex items-center gap-6">
@@ -137,11 +204,25 @@ export default function ProjectDetailPage() {
               }`}>
                 {project.status === 'active' ? 'Aktif' : project.status === 'on-hold' ? 'Askıda' : 'Tamamlandı'}
               </span>
+              <button 
+                onClick={() => {
+                  setEditProjectName(project.name);
+                  setEditProjectDesc(project.description);
+                  setEditProjectEnd(project.endDate);
+                  setIsProjectModalOpen(true);
+                }}
+                className="p-1.5 text-slate-400 hover:text-primary-600 transition-colors"
+                title="Projeyi Düzenle"
+              >
+                <MoreVertical size={16} />
+              </button>
             </div>
             <div className="flex items-center gap-6 mt-2 text-xs text-slate-500 font-bold uppercase tracking-wider">
               <div className="flex items-center gap-2">
                 <Calendar size={14} className="text-primary-500" />
-                {new Date(project.endDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                {project.endDate && !isNaN(new Date(project.endDate).getTime()) 
+                  ? new Date(project.endDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) 
+                  : 'Tarih belirtilmedi'}
               </div>
               <div className="flex items-center gap-2">
                 <CheckSquare size={14} className="text-primary-500" />
@@ -210,9 +291,22 @@ export default function ProjectDetailPage() {
                         }`}>
                           {task.priority === 'high' ? 'Kritik' : task.priority === 'medium' ? 'Orta' : 'Düşük'}
                         </span>
-                        <button className="p-1 text-slate-300 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <MoreVertical size={14} />
-                        </button>
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button 
+                            onClick={() => handleEditTask(task)}
+                            className="p-1 text-slate-400 hover:text-primary-600"
+                            title="Düzenle"
+                          >
+                            <Calendar size={14} />
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteTask(task.id)}
+                            className="p-1 text-slate-400 hover:text-rose-500"
+                            title="Sil"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </div>
 
                       <h4 className="text-[15px] font-black text-slate-900 mb-6 leading-tight group-hover:text-primary-600 transition-colors">{task.title}</h4>
@@ -220,7 +314,11 @@ export default function ProjectDetailPage() {
                       <div className="flex items-center justify-between pt-4 border-t border-slate-50">
                         <div className="flex items-center gap-2 text-slate-400 font-bold">
                           <Clock size={12} />
-                          <span className="text-[10px] tracking-tight">{new Date(task.dueDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}</span>
+                          <span className="text-[10px] tracking-tight">
+                            {task.dueDate && !isNaN(new Date(task.dueDate).getTime()) 
+                              ? new Date(task.dueDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) 
+                              : 'Tarih yok'}
+                          </span>
                         </div>
                         
                         <div className="flex items-center gap-2">
@@ -270,8 +368,8 @@ export default function ProjectDetailPage() {
         ))}
       </div>
 
-      {/* New Task Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Yeni Görev Ekle">
+      {/* New/Edit Task Modal */}
+      <Modal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); setEditingTask(null); }} title={editingTask ? "Görevi Düzenle" : "Yeni Görev Ekle"}>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <label className="text-xs font-black uppercase tracking-widest text-slate-400">Görev Başlığı</label>
@@ -322,11 +420,52 @@ export default function ProjectDetailPage() {
             />
           </div>
           <div className="pt-6 flex gap-4">
-            <Button variant="outline" type="button" className="flex-1 py-4 h-auto" onClick={() => setIsModalOpen(false)}>Vazgeç</Button>
-            <Button type="submit" className="flex-1 py-4 h-auto shadow-primary-600/30">Görevi Oluştur</Button>
+            <Button variant="outline" type="button" className="flex-1 py-4 h-auto" onClick={() => { setIsModalOpen(false); setEditingTask(null); }}>Vazgeç</Button>
+            <Button type="submit" className="flex-1 py-4 h-auto shadow-primary-600/30">
+              {editingTask ? 'Güncelle' : 'Görevi Oluştur'}
+            </Button>
           </div>
         </form>
       </Modal>
+
+      {/* Project Edit Modal */}
+      <Modal isOpen={isProjectModalOpen} onClose={() => setIsProjectModalOpen(false)} title="Projeyi Düzenle">
+        <form onSubmit={handleProjectEditSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-xs font-black uppercase tracking-widest text-slate-400">Proje Adı</label>
+            <input 
+              className="input h-12 text-base font-semibold" 
+              value={editProjectName}
+              onChange={e => setEditProjectName(e.target.value)}
+              required 
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-xs font-black uppercase tracking-widest text-slate-400">Açıklama</label>
+            <textarea 
+              className="input min-h-[100px] py-3 text-sm"
+              value={editProjectDesc}
+              onChange={e => setEditProjectDesc(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-xs font-black uppercase tracking-widest text-slate-400">Bitiş Tarihi</label>
+            <input 
+              type="date" 
+              className="input h-12" 
+              value={editProjectEnd}
+              onChange={e => setEditProjectEnd(e.target.value)}
+              required 
+            />
+          </div>
+          <div className="pt-6 flex gap-4">
+            <Button variant="outline" type="button" className="flex-1 py-4 h-auto" onClick={() => setIsProjectModalOpen(false)}>Vazgeç</Button>
+            <Button type="submit" className="flex-1 py-4 h-auto shadow-primary-600/30">Kaydet</Button>
+          </div>
+        </form>
+      </Modal>
+        </>
+      )}
     </div>
   );
 }

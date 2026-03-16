@@ -1,3 +1,18 @@
+export interface Workspace {
+  id: string;
+  name: string;
+  slug: string;
+  ownerId: string;
+  createdAt: string;
+}
+
+export interface WorkspaceMember {
+  workspaceId: string;
+  userId: string;
+  role: 'admin' | 'member';
+  joinedAt: string;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -8,6 +23,7 @@ export interface User {
   plan?: 'free' | 'pro';
   subscriptionStatus?: string;
   createdAt: string;
+  workspaceId?: string; // Mevcut aktif workspace
 }
 
 export interface Project {
@@ -18,6 +34,7 @@ export interface Project {
   startDate: string;
   endDate: string;
   teamId: string;
+  workspaceId: string;
   color: string;
   createdAt: string;
 }
@@ -29,6 +46,7 @@ export interface Task {
   status: 'todo' | 'in-progress' | 'completed';
   priority: 'low' | 'medium' | 'high';
   projectId: string;
+  workspaceId: string;
   assigneeId: string;
   dueDate: string;
   createdAt: string;
@@ -40,6 +58,7 @@ export interface TeamMember {
   email: string;
   role: string;
   department: string;
+  workspaceId: string;
   avatar?: string;
   joinedAt: string;
 }

@@ -15,10 +15,10 @@ import TeamPage from './pages/TeamPage';
 import SettingsPage from './pages/SettingsPage';
 import PricingPage from './pages/PricingPage';
 import SuccessPage from './pages/SuccessPage';
+import OnboardingPage from './pages/OnboardingPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 import ToastContainer from './components/ui/ToastContainer';
-
 
 function App() {
   const { initialize, isLoading } = useAuthStore();
@@ -52,6 +52,7 @@ function App() {
 
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
+          <Route path="/onboarding" element={<OnboardingPage />} />
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/projects" element={<ProjectsPage />} />

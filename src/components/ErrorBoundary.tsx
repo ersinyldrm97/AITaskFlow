@@ -1,23 +1,21 @@
-import { Component, ErrorInfo, ReactNode } from 'react';
-import { AlertTriangle, RotateCcw } from 'lucide-react';
-import Button from './ui/Button';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {
-  children: ReactNode;
+  children?: ReactNode;
+  fallback?: ReactNode;
 }
 
 interface State {
   hasError: boolean;
-  error?: Error;
 }
 
-export default class ErrorBoundary extends Component<Props, State> {
+class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false
   };
 
-  public static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+  public static getDerivedStateFromError(_: Error): State {
+    return { hasError: true };
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
@@ -26,35 +24,31 @@ export default class ErrorBoundary extends Component<Props, State> {
 
   public render() {
     if (this.state.hasError) {
-      return (
-        <div className="min-h-[400px] flex flex-col items-center justify-center p-6 text-center">
-          <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center mb-4">
-            <AlertTriangle size={32} />
+      return this.props.fallback || (
+        <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50">
+          <div className="max-w-md w-full bg-white rounded-3xl p-8 shadow-xl shadow-slate-200 border border-slate-100 text-center space-y-6">
+            <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center mx-auto">
+              <span className="text-2xl font-bold">!</span>
+            </div>
+            <div className="space-y-4">
+              <h2 className="text-2xl font-black text-slate-900 leading-tight">Beklenmedik bir hata oluştu</h2>
+              <p className="text-slate-500 text-sm font-medium leading-relaxed">Veriler yüklenirken veya işlenirken bir sorun oluştu. Bu durum genellikle zayıf internet bağlantısından veya geçici bir sunucu hatasından kaynaklanır.</p>
+            </div>
+            <div className="flex flex-col gap-3">
+              <button 
+                onClick={() => window.location.href = '/dashboard'}
+                className="w-full py-4 bg-primary-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary-600/20 hover:bg-primary-700 transition-all"
+              >
+                Dashboard'a Dön
+              </button>
+              <button 
+                onClick={() => this.setState({ hasError: false })}
+                className="w-full py-4 bg-slate-100 text-slate-900 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all"
+              >
+                Yeniden Dene
+              </button>
+            </div>
           </div>
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">Eyvah, bir şeyler ters gitti!</h2>
-          <p className="text-slate-500 max-w-md mb-8">
-            Uygulama beklenmedik bir hata ile karşılaştı. Sayfayı yenilemeyi deneyebilir veya ana sayfaya dönebilirsiniz.
-          </p>
-          <div className="flex gap-3">
-            <Button 
-              variant="outline" 
-              onClick={() => window.location.reload()}
-              className="gap-2"
-            >
-              <RotateCcw size={18} /> Yenile
-            </Button>
-            <Button 
-              onClick={() => window.location.href = '/dashboard'}
-            >
-              Dashboard'a Dön
-            </Button>
-          </div>
-          {/* @ts-ignore */}
-          {import.meta.env.DEV && (
-            <pre className="mt-8 p-4 bg-slate-100 rounded-xl text-left text-xs text-rose-600 overflow-auto max-w-2xl">
-              {this.state.error?.toString()}
-            </pre>
-          )}
         </div>
       );
     }
@@ -62,3 +56,5 @@ export default class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+
+export default ErrorBoundary;

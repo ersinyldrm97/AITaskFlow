@@ -16,6 +16,7 @@ import {
 import { Link } from 'react-router-dom';
 import Modal from '../components/ui/Modal';
 import { useNotificationStore } from '../store/notificationStore';
+import { useAuthStore } from '../store/authStore';
 import type { Project, Task } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import Button from '../components/ui/Button';
@@ -25,6 +26,7 @@ export default function ProjectsPage() {
   const { tasks, fetchTasks } = useTaskStore();
   const { members, fetchMembers } = useTeamStore();
   const { notify } = useNotificationStore();
+  const { currentUser } = useAuthStore();
 
   useEffect(() => {
     fetchProjects();
@@ -50,6 +52,13 @@ export default function ProjectsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Plan Restriction Check
+    if (!editingProject && currentUser?.plan === 'free' && projects.length >= 3) {
+      notify('Ücretsiz planda maksimum 3 proje oluşturabilirsiniz. Lütfen Pro\'ya yükseltin.', 'error');
+      setIsModalOpen(false);
+      return;
+    }
     
     if (editingProject) {
       await updateProject(editingProject.id, {
