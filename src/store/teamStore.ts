@@ -19,17 +19,36 @@ export const useTeamStore = create<TeamState>()((set, get) => ({
   hasLoaded: false,
 
   fetchMembers: async () => {
+    const { currentWorkspace } = (await import('./authStore')).useAuthStore.getState();
+    if (!currentWorkspace) return;
+
     set({ isLoading: true });
-    const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+    
+    // workspace_members üzerinden o workspace'e ait tüm üyeleri ve profillerini çek
+    const { data, error } = await supabase
+      .from('workspace_members')
+      .select(`
+        role,
+        joined_at,
+        profiles (
+          id,
+          name,
+          avatar,
+          created_at
+        )
+      `)
+      .eq('workspace_id', currentWorkspace.id);
+      
     if (!error && data) {
-      const formatted = data.map(d => ({
-        id: d.id,
-        name: d.name,
-        email: 'gizli@taskflow.com', // Email is separated in auth context in Supabase by default
+      const formatted: TeamMember[] = data.map((d: any) => ({
+        id: d.profiles.id,
+        name: d.profiles.name || 'İsimsiz Üye',
+        email: 'gizli@taskflow.com', // E-posta gizliliği için
         role: d.role || 'Üye',
         department: 'Genel',
-        avatar: d.avatar || 'U',
-        joinedAt: d.created_at,
+        workspaceId: currentWorkspace.id,
+        avatar: d.profiles.avatar || 'U',
+        joinedAt: d.joined_at || d.profiles.created_at,
       }));
       set({ members: formatted, isLoading: false, hasLoaded: true });
     } else {

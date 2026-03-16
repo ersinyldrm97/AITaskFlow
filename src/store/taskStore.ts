@@ -19,12 +19,20 @@ export const useTaskStore = create<TaskState>()((set, get) => ({
   hasLoaded: false,
 
   fetchTasks: async () => {
+    const { currentWorkspace } = (await import('./authStore')).useAuthStore.getState();
+    if (!currentWorkspace) return;
+
     if (get().isLoading) return;
     set({ isLoading: true });
     try {
-      const { data, error } = await supabase.from('tasks').select('*').order('created_at', { ascending: false });
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('workspace_id', currentWorkspace.id)
+        .order('created_at', { ascending: false });
+        
       if (!error && data) {
-        const formatted = data.map(d => ({
+        const formatted: Task[] = data.map(d => ({
           id: d.id,
           title: d.title || 'Başlıksız Görev',
           description: d.description || '',
@@ -32,9 +40,9 @@ export const useTaskStore = create<TaskState>()((set, get) => ({
           priority: d.priority || 'medium',
           dueDate: d.due_date || new Date().toISOString().split('T')[0],
           projectId: d.project_id,
+          workspaceId: d.workspace_id,
           assigneeId: d.assignee_id,
           createdAt: d.created_at,
-          userId: d.user_id,
         }));
         set({ tasks: formatted, isLoading: false, hasLoaded: true });
       } else {
@@ -46,6 +54,9 @@ export const useTaskStore = create<TaskState>()((set, get) => ({
   },
 
   addTask: async (task) => {
+    const { currentWorkspace } = (await import('./authStore')).useAuthStore.getState();
+    if (!currentWorkspace) return;
+
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) return;
 
@@ -58,6 +69,7 @@ export const useTaskStore = create<TaskState>()((set, get) => ({
       project_id: task.projectId,
       assignee_id: task.assigneeId === '' ? null : task.assigneeId,
       user_id: userData.user.id,
+      workspace_id: currentWorkspace.id
     }]).select().single();
 
     if (!error && data) {
@@ -69,6 +81,7 @@ export const useTaskStore = create<TaskState>()((set, get) => ({
         priority: data.priority,
         dueDate: data.due_date,
         projectId: data.project_id,
+        workspaceId: data.workspace_id,
         assigneeId: data.assignee_id,
         createdAt: data.created_at,
       };

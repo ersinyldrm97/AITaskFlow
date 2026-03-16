@@ -8,6 +8,8 @@ import { AnimatePresence } from 'framer-motion';
 import { useProjectStore } from '../../store/projectStore';
 import { useTaskStore } from '../../store/taskStore';
 import { useTeamStore } from '../../store/teamStore';
+import { useAuthStore } from '../../store/authStore';
+import { Navigate } from 'react-router-dom';
 
 const pageTitles: Record<string, string> = {
   '/dashboard': 'Dashboard',
@@ -16,19 +18,24 @@ const pageTitles: Record<string, string> = {
   '/team': 'Ekip',
   '/settings': 'Ayarlar',
 };
-
 export default function AppLayout() {
   const { pathname } = useLocation();
   const { hasLoaded: projectsLoaded, isLoading: projectsLoading, fetchProjects } = useProjectStore();
   const { hasLoaded: tasksLoaded, isLoading: tasksLoading, fetchTasks } = useTaskStore();
   const { hasLoaded: membersLoaded, isLoading: membersLoading, fetchMembers } = useTeamStore();
+  const { currentWorkspace } = useAuthStore();
   
   useEffect(() => {
-    // SIKILASTIRILMIS KONTROL: Eğer zaten yükleniyorsa veya yüklendiyse tekrar çekme!
-    if (!projectsLoaded && !projectsLoading) fetchProjects();
-    if (!tasksLoaded && !tasksLoading) fetchTasks();
-    if (!membersLoaded && !membersLoading) fetchMembers();
-  }, [projectsLoaded, tasksLoaded, membersLoaded, projectsLoading, tasksLoading, membersLoading]);
+    if (currentWorkspace) {
+      if (!projectsLoaded && !projectsLoading) fetchProjects();
+      if (!tasksLoaded && !tasksLoading) fetchTasks();
+      if (!membersLoaded && !membersLoading) fetchMembers();
+    }
+  }, [projectsLoaded, tasksLoaded, membersLoaded, projectsLoading, tasksLoading, membersLoading, currentWorkspace]);
+
+  if (!currentWorkspace && pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" replace />;
+  }
   
   const title = pageTitles[pathname] || 
     (pathname.startsWith('/projects/') ? 'Proje Detayı' : 'TaskFlow');

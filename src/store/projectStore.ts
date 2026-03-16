@@ -21,22 +21,29 @@ export const useProjectStore = create<ProjectState>()((set, get) => ({
   hasLoaded: false,
 
   fetchProjects: async () => {
-    if (get().isLoading) return;
+    const { currentWorkspace } = (await import('./authStore')).useAuthStore.getState();
+    if (!currentWorkspace) return;
+
     set({ isLoading: true });
     try {
-      const { data, error } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('workspace_id', currentWorkspace.id)
+        .order('created_at', { ascending: false });
+        
       if (!error && data) {
-        const formatted = data.map(d => ({
+        const formatted: Project[] = data.map(d => ({
           id: d.id,
           name: d.name || 'İsimsiz Proje',
           description: d.description || '',
           status: d.status || 'active',
           startDate: d.start_date || new Date().toISOString(),
           endDate: d.end_date || new Date().toISOString(),
-          teamId: d.team_id || null, // Defensive default
+          teamId: d.team_id || null,
+          workspaceId: d.workspace_id,
           color: d.color || '#6366f1',
           createdAt: d.created_at,
-          userId: d.user_id || null, // Defensive default
         }));
         set({ projects: formatted, isLoading: false, hasLoaded: true });
       } else {
@@ -48,6 +55,9 @@ export const useProjectStore = create<ProjectState>()((set, get) => ({
   },
 
   addProject: async (project) => {
+    const { currentWorkspace } = (await import('./authStore')).useAuthStore.getState();
+    if (!currentWorkspace) return;
+
     const color = projectColors[Math.floor(Math.random() * projectColors.length)];
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) return;
@@ -60,6 +70,7 @@ export const useProjectStore = create<ProjectState>()((set, get) => ({
       end_date: project.endDate,
       color: color,
       user_id: userData.user.id,
+      workspace_id: currentWorkspace.id
     }]).select().single();
 
     if (!error && data) {
@@ -71,6 +82,7 @@ export const useProjectStore = create<ProjectState>()((set, get) => ({
         startDate: data.start_date,
         endDate: data.end_date,
         teamId: data.team_id,
+        workspaceId: data.workspace_id,
         color: data.color,
         createdAt: data.created_at,
       };
