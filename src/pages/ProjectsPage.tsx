@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useProjectStore } from '../store/projectStore';
 import { useTaskStore } from '../store/taskStore';
+import { useTeamStore } from '../store/teamStore';
 import { 
   Plus, 
   Search, 
@@ -20,12 +21,21 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Button from '../components/ui/Button';
 
 export default function ProjectsPage() {
-  const { projects, addProject, deleteProject } = useProjectStore();
-  const { tasks } = useTaskStore();
+  const { projects, addProject, updateProject, deleteProject, fetchProjects } = useProjectStore();
+  const { tasks, fetchTasks } = useTaskStore();
+  const { members, fetchMembers } = useTeamStore();
   const { notify } = useNotificationStore();
+
+  useEffect(() => {
+    fetchProjects();
+    fetchTasks();
+    fetchMembers();
+  }, [fetchProjects, fetchTasks, fetchMembers]);
+
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
   
   // Form State
   const [newName, setNewName] = useState('');
@@ -38,21 +48,49 @@ export default function ProjectsPage() {
     return matchesFilter && matchesSearch;
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    addProject({
-      name: newName,
-      description: newDesc,
-      status: 'active',
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: newEnd,
-      teamId: 'team-1',
-    });
-    notify('Yeni proje başarıyla oluşturuldu');
+    
+    if (editingProject) {
+      await updateProject(editingProject.id, {
+        name: newName,
+        description: newDesc,
+        endDate: newEnd,
+      });
+      notify('Proje başarıyla güncellendi');
+    } else {
+      await addProject({
+        name: newName,
+        description: newDesc,
+        status: 'active',
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: newEnd,
+        teamId: 'team-1',
+      });
+      notify('Yeni proje başarıyla oluşturuldu');
+    }
+
     setNewName('');
     setNewDesc('');
     setNewEnd('');
+    setEditingProject(null);
     setIsModalOpen(false);
+  };
+
+  const handleEdit = (project: Project) => {
+    setEditingProject(project);
+    setNewName(project.name);
+    setNewDesc(project.description);
+    setNewEnd(project.endDate);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingProject(null);
+    setNewName('');
+    setNewDesc('');
+    setNewEnd('');
   };
   
   const handleDelete = (id: string, name: string) => {
@@ -77,7 +115,13 @@ export default function ProjectsPage() {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
         >
-          <Button onClick={() => setIsModalOpen(true)} className="gap-2">
+          <Button 
+            onClick={() => {
+              setEditingProject(null);
+              setIsModalOpen(true);
+            }} 
+            className="gap-2"
+          >
             <Plus size={20} />
             Yeni Proje Oluştur
           </Button>
@@ -146,7 +190,10 @@ export default function ProjectsPage() {
                         {p.name.charAt(0)}
                       </div>
                       <div className="flex items-center gap-1 opacity-100 group-focus-within:opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all duration-300">
-                        <button className="p-2 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all">
+                        <button 
+                          onClick={() => handleEdit(p)}
+                          className="p-2 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all"
+                        >
                           <Edit2 size={18} />
                         </button>
                         <button 
@@ -199,14 +246,21 @@ export default function ProjectsPage() {
 
                   <div className="px-7 py-5 bg-slate-50/50 border-t border-slate-100/50 flex items-center justify-between backdrop-blur-sm">
                     <div className="flex -space-x-3">
-                      {[1, 2, 3].map(i => (
-                        <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center text-[10px] font-black text-slate-500 shadow-sm overflow-hidden bg-gradient-to-br from-slate-200 to-slate-300">
-                          U{i}
+                      {members.slice(0, 3).map(m => (
+                        <div key={m.id} className="w-8 h-8 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center text-[10px] font-black text-slate-500 shadow-sm overflow-hidden bg-gradient-to-br from-slate-200 to-slate-300">
+                          {m.avatar || m.name.charAt(0)}
                         </div>
                       ))}
-                      <div className="w-8 h-8 rounded-full border-2 border-white bg-primary-50 flex items-center justify-center text-[10px] font-black text-primary-600 shadow-sm">
-                        +2
-                      </div>
+                      {members.length > 3 && (
+                        <div className="w-8 h-8 rounded-full border-2 border-white bg-primary-50 flex items-center justify-center text-[10px] font-black text-primary-600 shadow-sm">
+                          +{members.length - 3}
+                        </div>
+                      )}
+                      {members.length === 0 && (
+                        <div className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-400 shadow-sm italic">
+                          ?
+                        </div>
+                      )}
                     </div>
                     <Link 
                       to={`/projects/${p.id}`} 
@@ -241,7 +295,10 @@ export default function ProjectsPage() {
           </div>
           <div className="relative z-10 mt-4">
             <button 
-              onClick={() => setIsModalOpen(true)} 
+              onClick={() => {
+                setEditingProject(null);
+                setIsModalOpen(true);
+              }} 
               className="inline-flex items-center gap-2 px-8 py-4 bg-primary-600 text-white rounded-2xl font-black tracking-widest uppercase text-xs shadow-xl shadow-primary-600/30 hover:bg-primary-700 hover:-translate-y-1 transition-all duration-300"
             >
               <Plus size={18} />
@@ -254,8 +311,8 @@ export default function ProjectsPage() {
       {/* New Project Modal */}
       <Modal 
         isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        title="Yeni Proje Oluştur"
+        onClose={closeModal} 
+        title={editingProject ? "Projeyi Düzenle" : "Yeni Proje Oluştur"}
       >
         <form onSubmit={handleSubmit} className="space-y-6 p-1">
           <div className="space-y-2">
@@ -295,8 +352,10 @@ export default function ProjectsPage() {
             </div>
           </div>
           <div className="pt-6 flex gap-4">
-            <Button variant="outline" type="button" className="flex-1 py-4 h-auto" onClick={() => setIsModalOpen(false)}>Vazgeç</Button>
-            <Button type="submit" className="flex-1 py-4 h-auto shadow-primary-600/30">Oluştur ve Paylaş</Button>
+            <Button variant="outline" type="button" className="flex-1 py-4 h-auto" onClick={closeModal}>Vazgeç</Button>
+            <Button type="submit" className="flex-1 py-4 h-auto shadow-primary-600/30">
+              {editingProject ? 'Değişiklikleri Kaydet' : 'Oluştur ve Paylaş'}
+            </Button>
           </div>
         </form>
       </Modal>

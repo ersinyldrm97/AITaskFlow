@@ -29,11 +29,25 @@ async function runHealthCheck() {
       console.error('Detay:', error.message);
     } else {
       console.log(`✅ BAŞARILI: Supabase bağlantısı aktif. (Yanıt süresi: ${ms}ms)`);
-      console.log('Sistem tüm API isteklerine yanıt vermeye hazır durumda.');
     }
+
+    // YENİ YETENEK: Lokal Sunucu Kontrolü
+    console.log('\n🌐 Lokal sunucu kontrol ediliyor (Vite)...');
+    try {
+      const resp = await fetch('http://localhost:5173');
+      if (resp.ok) {
+        console.log('✅ BAŞARILI: Lokal geliştirme sunucusu (Vite) çalışıyor.');
+      } else {
+        console.log('⚠️  UYARI: Lokal sunucu yanıt veriyor ancak durum kodu hatası döndü.');
+      }
+    } catch (e) {
+      console.log('❌ HATA: Lokal geliştirme sunucusuna (localhost:5173) ulaşılamadı. Sunucunun açık olduğundan emin olun.');
+    }
+
   } catch (err) {
     console.error('❌ KRİTİK HATA: İstek atılırken bir sorun oluştu.', err);
   }
+
   
   console.log('--------------------------------------------------');
   console.log('🤖 Ajan 1 Görevini Tamamladı.\n');

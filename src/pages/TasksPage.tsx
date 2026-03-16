@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTaskStore } from '../store/taskStore';
 import { useProjectStore } from '../store/projectStore';
 import { useTeamStore } from '../store/teamStore';
@@ -17,10 +17,17 @@ import { useNotificationStore } from '../store/notificationStore';
 import type { Project, Task, TeamMember } from '../types';
 
 export default function TasksPage() {
-  const { tasks, addTask, updateTask, deleteTask } = useTaskStore();
-  const { projects } = useProjectStore();
-  const { members } = useTeamStore();
+  const { tasks, addTask, updateTask, deleteTask, fetchTasks } = useTaskStore();
+  const { projects, fetchProjects } = useProjectStore();
+  const { members, fetchMembers } = useTeamStore();
   const { notify } = useNotificationStore();
+
+  useEffect(() => {
+    fetchTasks();
+    fetchProjects();
+    fetchMembers();
+  }, [fetchTasks, fetchProjects, fetchMembers]);
+
   
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');

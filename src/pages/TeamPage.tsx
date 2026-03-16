@@ -9,14 +9,19 @@ import {
   Shield,
   Trash2
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Modal from '../components/ui/Modal';
 import { useNotificationStore } from '../store/notificationStore';
 import type { TeamMember } from '../types';
 
 export default function TeamPage() {
-  const { members, addMember, deleteMember } = useTeamStore();
+  const { members, addMember, deleteMember, fetchMembers } = useTeamStore();
   const { notify } = useNotificationStore();
+
+  useEffect(() => {
+    fetchMembers();
+  }, [fetchMembers]);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [search, setSearch] = useState('');
 

@@ -22,6 +22,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
       const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+      
       const user: User = {
         id: session.user.id,
         name: profile?.name || session.user.user_metadata?.name || '',
@@ -38,11 +39,19 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
     supabase.auth.onAuthStateChange(async (event, session) => {
       if (session) {
-        // Debounce or slight delay to allow trigger to run on register
+        // If email confirmation is required but not done, sign out
+        if (!session.user.email_confirmed_at) {
+          await supabase.auth.signOut();
+          set({ currentUser: null, isAuthenticated: false, isLoading: false });
+          return;
+        }
+
         if (event === 'SIGNED_IN') {
           await new Promise(resolve => setTimeout(resolve, 500)); 
         }
+        
         const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+        
         const user: User = {
           id: session.user.id,
           name: profile?.name || session.user.user_metadata?.name || '',
@@ -60,11 +69,28 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   },
 
   login: async (email, password) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error };
+    set({ currentUser: null, isAuthenticated: false });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    
+    if (error) return { error };
+
+    if (data.user && !data.user.email_confirmed_at) {
+      await supabase.auth.signOut();
+      return { error: new Error('Email not confirmed') };
+    }
+
+    // Double check if profile exists (meaning user is not deleted at app-level)
+    const { data: profile, error: profileCheckError } = await supabase.from('profiles').select('id').eq('id', data.user.id).single();
+    if (profileCheckError && profileCheckError.code === 'PGRST116') {
+      await supabase.auth.signOut();
+      return { error: new Error('User record not found or deleted') };
+    }
+    
+    return { error: null };
   },
 
   register: async (name, email, password) => {
+    set({ currentUser: null, isAuthenticated: false }); // Clear state before register
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -78,6 +104,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   },
 
   logout: async () => {
+    set({ currentUser: null, isAuthenticated: false }); // Clear state immediately
     await supabase.auth.signOut();
   },
 

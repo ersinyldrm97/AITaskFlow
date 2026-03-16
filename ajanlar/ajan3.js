@@ -35,12 +35,14 @@ async function runDeadlineScanner() {
         const dueDate = new Date(task.due_date);
         
         if (dueDate < now) {
-          console.log(`⚠️  [GECİKTİ] ${task.title} (Son Tarih: ${task.due_date})`);
+          const prefix = task.priority === 'high' ? '🔥 [KRİTİK GECİKMELİ]' : '⚠️  [GECİKTİ]';
+          console.log(`${prefix} ${task.title} (Son Tarih: ${task.due_date})`);
           overdueCount++;
         } else {
           const diffDays = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
           if (diffDays <= 3) {
-            console.log(`🔔  [YAKLAŞIYOR] ${task.title} (Kalan Süre: ${diffDays} gün)`);
+            const importance = task.priority === 'high' ? '🚨 [ACİL]' : '🔔 [YAKLAŞIYOR]';
+            console.log(`${importance} ${task.title} (Kalan Süre: ${diffDays} gün)`);
           }
         }
       }

@@ -1,4 +1,5 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { useProjectStore } from '../store/projectStore';
 import { useTaskStore } from '../store/taskStore';
 import { useTeamStore } from '../store/teamStore';
@@ -22,9 +23,17 @@ export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const project = useProjectStore(state => state.projects.find((p: Project) => p.id === id));
-  const { tasks, addTask, updateTask } = useTaskStore();
-  const { members } = useTeamStore();
+  const { tasks, addTask, updateTask, fetchTasks } = useTaskStore();
+  const { members, fetchMembers } = useTeamStore();
+  const { fetchProjects } = useProjectStore();
   const { notify } = useNotificationStore();
+
+  useEffect(() => {
+    fetchProjects();
+    fetchTasks();
+    fetchMembers();
+  }, [fetchProjects, fetchTasks, fetchMembers]);
+
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');

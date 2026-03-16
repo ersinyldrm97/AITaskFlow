@@ -20,19 +20,30 @@ export default function RegisterPage() {
     setError('');
     
     if (password.length < 6) {
-      setError('Şifre en az 6 karakter olmalıdır.');
+      const msg = 'Şifre en az 6 karakter olmalıdır.';
+      setError(msg);
+      notify(msg, 'error');
       return;
     }
 
     setIsLoading(true);
-    const { error: registerError } = await register(name, email, password);
-    setIsLoading(false);
+    try {
+      const { error: registerError } = await register(name, email, password);
+      setIsLoading(false);
 
-    if (!registerError) {
-      notify('Hesabınız başarıyla oluşturuldu!');
-      navigate('/dashboard');
-    } else {
-      setError(registerError.message || 'Kayıt sırasında bir hata oluştu.');
+      if (!registerError) {
+        notify('Hesabınız başarıyla oluşturuldu!');
+        navigate('/dashboard');
+      } else {
+        const msg = registerError.message || 'Kayıt sırasında bir hata oluştu.';
+        setError(msg);
+        notify(msg, 'error');
+      }
+    } catch (err: any) {
+      setIsLoading(false);
+      const msg = 'Sunucuyla bağlantı kurulamadı.';
+      setError(msg);
+      notify(msg, 'error');
     }
   };
 

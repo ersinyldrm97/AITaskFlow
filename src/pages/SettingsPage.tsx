@@ -7,7 +7,9 @@ import {
   CreditCard,
   Save,
   Camera,
-  Check
+  Check,
+  ChevronRight,
+  Zap
 } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -191,9 +193,28 @@ export default function SettingsPage() {
               <p className="text-sm text-slate-300 max-w-md font-medium">
                 Yeni nesil özellikler, sınırsız ekip ve gelişmiş raporlama için hemen Pro'ya yükseltin.
               </p>
-              <Button className="w-full sm:w-auto bg-white text-slate-900 border-0 hover:bg-slate-100 py-3.5 px-8 text-xs font-black uppercase tracking-widest active:scale-95">
-                Planlara Göz At
-              </Button>
+              <motion.button
+                whileHover={{ scale: 1.05, y: -4 }}
+                whileTap={{ scale: 0.95 }}
+                className="w-full sm:w-auto group relative inline-flex items-center justify-center gap-3 bg-white text-slate-950 px-10 py-4.5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all duration-300 shadow-[0_0_40px_rgba(99,102,241,0.4)] hover:shadow-[0_0_60px_rgba(99,102,241,0.6)]"
+              >
+                {/* Animated Gradient Border Layer */}
+                <div className="absolute -inset-[2px] rounded-2xl bg-gradient-to-r from-primary-500 via-indigo-400 to-purple-500 opacity-70 group-hover:opacity-100 blur-[1px] group-hover:blur-[2px] transition-all duration-500 animate-gradient-x" />
+                
+                {/* Primary Button Surface */}
+                <div className="relative w-full h-full flex items-center justify-center gap-3 bg-white rounded-[14px] px-8 py-4 z-10">
+                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700">Planlara Göz At</span>
+                  <div className="relative">
+                    <Zap size={16} className="text-primary-500 fill-primary-500 animate-pulse" />
+                    <ChevronRight size={16} className="absolute inset-0 opacity-0 group-hover:opacity-100 group-hover:translate-x-4 transition-all duration-300 text-primary-600" />
+                  </div>
+                </div>
+
+                {/* Shimmer Effect */}
+                <div className="absolute inset-0 w-full h-full overflow-hidden rounded-2xl z-20 pointer-events-none">
+                  <div className="w-[100px] h-full bg-white/20 skew-x-[-20deg] absolute -left-full group-hover:animate-shimmer" />
+                </div>
+              </motion.button>
             </div>
           </motion.div>
         </div>

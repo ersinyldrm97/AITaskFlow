@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import {
   FolderKanban,
   CheckSquare,
@@ -21,18 +22,53 @@ import { motion } from 'framer-motion';
 import Button from '../components/ui/Button';
 
 export default function DashboardPage() {
-  const { projects } = useProjectStore();
-  const { tasks } = useTaskStore();
-  const { members } = useTeamStore();
+  const { projects, fetchProjects } = useProjectStore();
+  const { tasks, fetchTasks } = useTaskStore();
+  const { members, fetchMembers } = useTeamStore();
   const { currentUser } = useAuthStore();
+
+  useEffect(() => {
+    fetchProjects();
+    fetchTasks();
+    fetchMembers();
+  }, [fetchProjects, fetchTasks, fetchMembers]);
+
 
   const firstName = currentUser?.name?.split(' ')[0] || 'Kullanıcı';
 
   const stats = [
-    { label: 'Toplam Proje', value: projects.length, icon: FolderKanban, color: 'text-indigo-600', bg: 'bg-indigo-50/50', trend: '+12%' },
-    { label: 'Aktif Görevler', value: tasks.filter((t: Task) => t.status !== 'completed').length, icon: Target, color: 'text-violet-600', bg: 'bg-violet-50/50', trend: '8 bekliyor' },
-    { label: 'Ekip Üyeleri', value: members.length, icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50/50', trend: '3 aktif' },
-    { label: 'Kritik Görevler', value: tasks.filter((t: Task) => t.priority === 'high' && t.status !== 'completed').length, icon: TrendingUp, color: 'text-rose-600', bg: 'bg-rose-50/50', trend: 'Acil' },
+    { 
+      label: 'Toplam Proje', 
+      value: projects.length, 
+      icon: FolderKanban, 
+      color: 'text-indigo-600', 
+      bg: 'bg-indigo-50/50', 
+      trend: `${projects.filter(p => p.status === 'active').length} aktif` 
+    },
+    { 
+      label: 'Aktif Görevler', 
+      value: tasks.filter((t: Task) => t.status !== 'completed').length, 
+      icon: Target, 
+      color: 'text-violet-600', 
+      bg: 'bg-violet-50/50', 
+      trend: `${tasks.filter((t: Task) => t.status === 'in-progress').length} devam ediyor` 
+    },
+    { 
+      label: 'Ekip Üyeleri', 
+      value: members.length, 
+      icon: Users, 
+      color: 'text-emerald-600', 
+      bg: 'bg-emerald-50/50', 
+      trend: `${members.length > 0 ? 'Aktif Ekip' : 'Üye Yok'}` 
+    },
+    { 
+      label: 'Kritik Görevler', 
+      value: tasks.filter((t: Task) => t.priority === 'high' && t.status !== 'completed').length, 
+      icon: TrendingUp, 
+      color: 'text-rose-600', 
+      bg: 'bg-rose-50/50', 
+      trend: tasks.some((t: Task) => t.priority === 'high' && t.status !== 'completed') ? 'Acil Müdahale' : 'Sorun Yok' 
+    },
   ];
 
   const activeProjects = projects.filter((p: Project) => p.status === 'active').slice(0, 4);

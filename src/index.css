@@ -115,3 +115,23 @@
 .premium-card {
   @apply bg-white border border-slate-100 rounded-3xl shadow-sm hover:shadow-2xl hover:shadow-primary-600/5 transition-all duration-500 hover:-translate-y-1;
 }
+
+/* Premium Button Animations */
+@keyframes gradient-x {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+.animate-gradient-x {
+  background-size: 200% 200%;
+  animation: gradient-x 3s ease infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 1.5s infinite;
+}
