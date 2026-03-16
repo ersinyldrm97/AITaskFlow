@@ -5,6 +5,7 @@ import type { Project } from '../types';
 interface ProjectState {
   projects: Project[];
   isLoading: boolean;
+  hasLoaded: boolean;
   fetchProjects: () => Promise<void>;
   addProject: (project: Omit<Project, 'id' | 'createdAt' | 'color'>) => Promise<void>;
   updateProject: (id: string, data: Partial<Project>) => Promise<void>;
@@ -17,26 +18,32 @@ const projectColors = ['#6366f1', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#
 export const useProjectStore = create<ProjectState>()((set, get) => ({
   projects: [],
   isLoading: false,
+  hasLoaded: false,
 
   fetchProjects: async () => {
+    if (get().isLoading) return;
     set({ isLoading: true });
-    const { data, error } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
-    if (!error && data) {
-      const formatted = data.map(d => ({
-        id: d.id,
-        name: d.name,
-        description: d.description,
-        status: d.status,
-        startDate: d.start_date,
-        endDate: d.end_date,
-        teamId: d.team_id,
-        color: d.color,
-        createdAt: d.created_at,
-        userId: d.user_id,
-      }));
-      set({ projects: formatted, isLoading: false });
-    } else {
-      set({ isLoading: false });
+    try {
+      const { data, error } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
+      if (!error && data) {
+        const formatted = data.map(d => ({
+          id: d.id,
+          name: d.name || 'İsimsiz Proje',
+          description: d.description || '',
+          status: d.status || 'active',
+          startDate: d.start_date || new Date().toISOString(),
+          endDate: d.end_date || new Date().toISOString(),
+          teamId: d.team_id || null, // Defensive default
+          color: d.color || '#6366f1',
+          createdAt: d.created_at,
+          userId: d.user_id || null, // Defensive default
+        }));
+        set({ projects: formatted, isLoading: false, hasLoaded: true });
+      } else {
+        set({ isLoading: false, hasLoaded: true });
+      }
+    } catch (e) {
+      set({ isLoading: false, hasLoaded: true });
     }
   },
 

@@ -19,15 +19,16 @@ const pageTitles: Record<string, string> = {
 
 export default function AppLayout() {
   const { pathname } = useLocation();
-  const { fetchProjects } = useProjectStore();
-  const { fetchTasks } = useTaskStore();
-  const { fetchMembers } = useTeamStore();
+  const { hasLoaded: projectsLoaded, isLoading: projectsLoading, fetchProjects } = useProjectStore();
+  const { hasLoaded: tasksLoaded, isLoading: tasksLoading, fetchTasks } = useTaskStore();
+  const { hasLoaded: membersLoaded, isLoading: membersLoading, fetchMembers } = useTeamStore();
   
   useEffect(() => {
-    fetchProjects();
-    fetchTasks();
-    fetchMembers();
-  }, [fetchProjects, fetchTasks, fetchMembers]);
+    // SIKILASTIRILMIS KONTROL: Eğer zaten yükleniyorsa veya yüklendiyse tekrar çekme!
+    if (!projectsLoaded && !projectsLoading) fetchProjects();
+    if (!tasksLoaded && !tasksLoading) fetchTasks();
+    if (!membersLoaded && !membersLoading) fetchMembers();
+  }, [projectsLoaded, tasksLoaded, membersLoaded, projectsLoading, tasksLoading, membersLoading]);
   
   const title = pageTitles[pathname] || 
     (pathname.startsWith('/projects/') ? 'Proje Detayı' : 'TaskFlow');
@@ -39,7 +40,7 @@ export default function AppLayout() {
       <main className="ml-[260px] pt-16 min-h-screen">
         <div className="p-6">
           <AnimatePresence mode="wait">
-            <PageTransition key={location.pathname}>
+            <PageTransition key={pathname}>
               <Outlet />
             </PageTransition>
           </AnimatePresence>

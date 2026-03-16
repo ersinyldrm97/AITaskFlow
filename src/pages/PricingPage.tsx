@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Check, Zap, Star, Shield, Rocket, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../store/authStore';
 import Button from '../components/ui/Button';
 
 export default function PricingPage() {
@@ -40,15 +41,22 @@ export default function PricingPage() {
     }
   ];
 
-  const handleUpgrade = (planName: string) => {
+  const { updateProfile, currentUser } = useAuthStore();
+
+  const handleUpgrade = async (planName: string) => {
     if (planName === 'Pro') {
       // Future: Stripe Integration will trigger here
-      alert('Stripe ödeme sistemine yönlendiriliyorsunuz... (Demo aşamasında olduğu için simüle ediliyor)');
+      alert('Stripe ödeme sistemine yönlendiriliyorsunuz... (Demo: Ödeme başarılı sayılıyor)');
       
-      // Simulate Stripe Redirect Delay
-      setTimeout(() => {
-        navigate('/success');
-      }, 1500);
+      // Real Database Update
+      const { error } = await updateProfile({ plan: 'pro' as any });
+      
+      if (!error) {
+        // Simulate Stripe Redirect Delay
+        setTimeout(() => {
+          navigate('/success');
+        }, 1000);
+      }
     } else {
       navigate('/dashboard');
     }

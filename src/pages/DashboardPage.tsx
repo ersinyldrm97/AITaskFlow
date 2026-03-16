@@ -73,8 +73,14 @@ export default function DashboardPage() {
 
   const activeProjects = projects.filter((p: Project) => p.status === 'active').slice(0, 4);
   const upcomingTasks = tasks
-    .filter((t: Task) => t.status !== 'completed')
-    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+    .filter((t: Task) => t.status !== 'completed' && t.dueDate)
+    .sort((a, b) => {
+      const dateA = new Date(a.dueDate).getTime();
+      const dateB = new Date(b.dueDate).getTime();
+      if (isNaN(dateA)) return 1;
+      if (isNaN(dateB)) return -1;
+      return dateA - dateB;
+    })
     .slice(0, 5);
 
   return (
@@ -86,8 +92,18 @@ export default function DashboardPage() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+          <h2 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
             İyi işler, {firstName}! <span className="animate-wave origin-bottom-right inline-block">👋</span>
+            {currentUser?.plan === 'pro' && (
+              <motion.span
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-yellow-400 to-amber-600 text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-yellow-500/20"
+              >
+                <Zap size={10} className="fill-white" />
+                PRO
+              </motion.span>
+            )}
           </h2>
           <p className="text-slate-500 font-medium mt-1">İşte bugün neler olduğuna dair bir özet.</p>
         </motion.div>
@@ -226,7 +242,9 @@ export default function DashboardPage() {
                       <div className="flex items-center gap-3 mt-1.5">
                         <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400">
                           <Clock size={12} />
-                          {new Date(t.dueDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
+                          {t.dueDate && !isNaN(new Date(t.dueDate).getTime()) 
+                            ? new Date(t.dueDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) 
+                            : 'Tarih yok'}
                         </div>
                         <span className={`text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded ${t.priority === 'high' ? 'text-rose-600 bg-rose-50' :
                           t.priority === 'medium' ? 'text-amber-600 bg-amber-50' : 'text-indigo-600 bg-indigo-50'
@@ -249,26 +267,48 @@ export default function DashboardPage() {
             </motion.div>
           </div>
 
-          {/* Pro Promotion */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-            className="premium-card p-6 bg-slate-900 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-slate-800 via-slate-900 to-slate-900 text-white border-0 shadow-2xl shadow-indigo-500/10"
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-br from-yellow-400 to-amber-600 rounded-lg flex items-center justify-center shadow-lg shadow-yellow-500/20">
-                <Zap size={16} className="text-white fill-white" />
+          {/* Pro Promotion - Only visible to Free users */}
+          {currentUser?.plan === 'free' && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
+              className="premium-card p-6 bg-slate-900 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-slate-800 via-slate-900 to-slate-900 text-white border-0 shadow-2xl shadow-indigo-500/10"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-gradient-to-br from-yellow-400 to-amber-600 rounded-lg flex items-center justify-center shadow-lg shadow-yellow-500/20">
+                  <Zap size={16} className="text-white fill-white" />
+                </div>
+                <h4 className="text-base font-black tracking-tight">TaskFlow <span className="text-yellow-400">Pro</span></h4>
               </div>
-              <h4 className="text-base font-black tracking-tight">TaskFlow <span className="text-yellow-400">Pro</span></h4>
-            </div>
-            <p className="text-sm text-slate-400 mb-6 leading-relaxed font-medium">Sınırsız proje, gelişmiş analitiği ve ekip işbirliğini şimdi aktifleştirin.</p>
-            <Link to="/pricing" className="block w-full">
-              <button className="w-full py-4 bg-white text-slate-900 hover:bg-slate-50 border-0 rounded-2xl shadow-xl shadow-black/10 font-black text-xs uppercase tracking-widest active:scale-95 transition-all">
-                Yükseltmeye Başla
-              </button>
-            </Link>
-          </motion.div>
+              <p className="text-sm text-slate-400 mb-6 leading-relaxed font-medium">Sınırsız proje, gelişmiş analitiği ve ekip işbirliğini şimdi aktifleştirin.</p>
+              <Link to="/pricing" className="block w-full">
+                <button className="w-full py-4 bg-white text-slate-900 hover:bg-slate-50 border-0 rounded-2xl shadow-xl shadow-black/10 font-black text-xs uppercase tracking-widest active:scale-95 transition-all">
+                  Yükseltmeye Başla
+                </button>
+              </Link>
+            </motion.div>
+          )}
+
+          {/* Pro User Badge in Aside (Optional: Shows status for Pro users instead of promotion) */}
+          {currentUser?.plan === 'pro' && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="premium-card p-6 bg-gradient-to-br from-indigo-600 to-violet-700 text-white border-0 relative overflow-hidden group shadow-2xl shadow-indigo-600/20"
+            >
+              <div className="absolute -top-12 -right-12 w-32 h-32 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-colors" />
+              <div className="relative z-10 flex items-center gap-4">
+                <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30">
+                  <Zap size={24} className="text-yellow-300 fill-yellow-300 animate-pulse" />
+                </div>
+                <div>
+                  <h4 className="font-black text-white tracking-tight uppercase text-xs tracking-[0.2em]">Aktif Abonelik</h4>
+                  <p className="text-indigo-100 text-lg font-black tracking-tighter">TaskFlow Pro</p>
+                </div>
+              </div>
+            </motion.div>
+          )}
         </div>
       </div>
     </div>

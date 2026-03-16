@@ -5,6 +5,7 @@ import type { TeamMember } from '../types';
 interface TeamState {
   members: TeamMember[];
   isLoading: boolean;
+  hasLoaded: boolean;
   fetchMembers: () => Promise<void>;
   addMember: (member: Omit<TeamMember, 'id' | 'joinedAt'>) => Promise<void>;
   updateMember: (id: string, data: Partial<TeamMember>) => Promise<void>;
@@ -15,6 +16,7 @@ interface TeamState {
 export const useTeamStore = create<TeamState>()((set, get) => ({
   members: [],
   isLoading: false,
+  hasLoaded: false,
 
   fetchMembers: async () => {
     set({ isLoading: true });
@@ -29,9 +31,9 @@ export const useTeamStore = create<TeamState>()((set, get) => ({
         avatar: d.avatar || 'U',
         joinedAt: d.created_at,
       }));
-      set({ members: formatted, isLoading: false });
+      set({ members: formatted, isLoading: false, hasLoaded: true });
     } else {
-      set({ isLoading: false });
+      set({ isLoading: false, hasLoaded: true });
     }
   },
 

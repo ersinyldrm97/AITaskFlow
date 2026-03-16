@@ -20,23 +20,28 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   isLoading: true,
 
   initialize: async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
-      
-      const user: User = {
-        id: session.user.id,
-        name: profile?.name || session.user.user_metadata?.name || '',
-        email: session.user.email || '',
-        password: '',
-        role: profile?.role || 'Member',
-        plan: profile?.plan || 'free',
-        subscriptionStatus: profile?.subscription_status,
-        avatar: profile?.avatar || 'U',
-        createdAt: profile?.created_at || session.user.created_at,
-      };
-      set({ currentUser: user, isAuthenticated: true, isLoading: false });
-    } else {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+        
+        const user: User = {
+          id: session.user.id,
+          name: profile?.name || session.user.user_metadata?.name || '',
+          email: session.user.email || '',
+          password: '',
+          role: profile?.role || 'Member',
+          plan: profile?.plan || 'free',
+          subscriptionStatus: profile?.subscription_status,
+          avatar: profile?.avatar || 'U',
+          createdAt: profile?.created_at || session.user.created_at,
+        };
+        set({ currentUser: user, isAuthenticated: true, isLoading: false });
+      } else {
+        set({ currentUser: null, isAuthenticated: false, isLoading: false });
+      }
+    } catch (error) {
+      console.error('Auth initialization error:', error);
       set({ currentUser: null, isAuthenticated: false, isLoading: false });
     }
 

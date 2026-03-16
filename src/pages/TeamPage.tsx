@@ -12,11 +12,13 @@ import {
 import { useState, useEffect } from 'react';
 import Modal from '../components/ui/Modal';
 import { useNotificationStore } from '../store/notificationStore';
+import { useAuthStore } from '../store/authStore';
 import type { TeamMember } from '../types';
 
 export default function TeamPage() {
   const { members, addMember, deleteMember, fetchMembers } = useTeamStore();
   const { notify } = useNotificationStore();
+  const { currentUser } = useAuthStore();
 
   useEffect(() => {
     fetchMembers();
@@ -38,6 +40,14 @@ export default function TeamPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Plan Restriction Check
+    if (currentUser?.plan === 'free' && members.length >= 2) {
+      notify('Ücretsiz planda maksimum 2 ekip üyesi ekleyebilirsiniz. Lütfen daha fazla üye için Pro\'ya geçin.', 'error');
+      setIsModalOpen(false);
+      return;
+    }
+
     addMember({ name, email, role, department });
     notify(`${name} ekibe davet edildi`);
     setIsModalOpen(false);
