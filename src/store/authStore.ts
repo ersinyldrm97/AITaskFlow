@@ -8,6 +8,7 @@ interface AuthState {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ error: Error | null }>;
   register: (name: string, email: string, password: string) => Promise<{ error: Error | null }>;
+  signInWithSocial: (provider: 'google' | 'github') => Promise<{ error: Error | null }>;
   logout: () => Promise<void>;
   updateProfile: (data: Partial<User>) => Promise<{ error: Error | null }>;
   initialize: () => Promise<void>;
@@ -98,6 +99,17 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         data: {
           name,
         }
+      }
+    });
+    return { error };
+  },
+
+  signInWithSocial: async (provider) => {
+    set({ currentUser: null, isAuthenticated: false });
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: window.location.origin + '/dashboard'
       }
     });
     return { error };

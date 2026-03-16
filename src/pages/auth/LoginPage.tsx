@@ -10,7 +10,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState('');
-  const { login } = useAuthStore();
+  const { login, signInWithSocial } = useAuthStore();
   const { notify } = useNotificationStore();
   const navigate = useNavigate();
 
@@ -45,6 +45,13 @@ export default function LoginPage() {
       const msg = 'Bağlantı hatası oluştu.';
       setError(msg);
       notify(msg, 'error');
+    }
+  };
+
+  const handleSocialLogin = async (provider: 'google' | 'github') => {
+    const { error: socialError } = await signInWithSocial(provider);
+    if (socialError) {
+      notify(socialError.message, 'error');
     }
   };
 
@@ -136,11 +143,17 @@ export default function LoginPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-6">
-        <button className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-slate-100 rounded-xl hover:bg-slate-50 hover:border-slate-200 transition-all font-semibold text-slate-700 shadow-sm active:scale-95">
+        <button 
+          onClick={() => handleSocialLogin('google')}
+          className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-slate-100 rounded-xl hover:bg-slate-50 hover:border-slate-200 transition-all font-semibold text-slate-700 shadow-sm active:scale-95"
+        >
           <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4 grayscale group-hover:grayscale-0" />
           Google
         </button>
-        <button className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-slate-100 rounded-xl hover:bg-slate-50 hover:border-slate-200 transition-all font-semibold text-slate-700 shadow-sm active:scale-95">
+        <button 
+          onClick={() => handleSocialLogin('github')}
+          className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-slate-100 rounded-xl hover:bg-slate-50 hover:border-slate-200 transition-all font-semibold text-slate-700 shadow-sm active:scale-95"
+        >
           <Github size={18} />
           GitHub
         </button>

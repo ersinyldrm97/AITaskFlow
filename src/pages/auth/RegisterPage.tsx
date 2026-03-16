@@ -2,14 +2,15 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import { useNotificationStore } from '../../store/notificationStore';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, Loader2, Github } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { register } = useAuthStore();
+  const { register, signInWithSocial } = useAuthStore();
   const { notify } = useNotificationStore();
   const navigate = useNavigate();
 
@@ -47,10 +48,22 @@ export default function RegisterPage() {
     }
   };
 
+  const handleSocialLogin = async (provider: 'google' | 'github') => {
+    const { error: socialError } = await signInWithSocial(provider);
+    if (socialError) {
+      notify(socialError.message, 'error');
+    }
+  };
+
   return (
     <>
-      <h2 className="text-xl font-bold text-slate-900 mb-1">Hesap oluşturun</h2>
-      <p className="text-sm text-slate-500 mb-6">Ücretsiz başlayın, kredi kartı gerekmez</p>
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <h2 className="text-2xl font-black text-slate-900 mb-1 tracking-tight">Hesap oluşturun</h2>
+        <p className="text-sm text-slate-500 mb-6 font-medium">Ücretsiz başlayın, kredi kartı gerekmez</p>
+      </motion.div>
 
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-lg text-sm text-red-600">
@@ -95,11 +108,49 @@ export default function RegisterPage() {
             id="register-password"
           />
         </div>
-        <button type="submit" className="btn-primary w-full justify-center py-2.5" id="register-submit">
-          <UserPlus size={16} />
-          Kayıt Ol
-        </button>
+        <motion.button 
+          whileTap={{ scale: 0.98 }}
+          disabled={isLoading}
+          type="submit" 
+          className="btn-primary w-full justify-center py-3.5 relative overflow-hidden group shadow-xl shadow-primary-600/20 disabled:opacity-70" 
+          id="register-submit"
+        >
+          {isLoading ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            <>
+              <UserPlus size={18} className="group-hover:scale-110 transition-transform" />
+              <span className="font-bold tracking-wide">Kayıt Ol</span>
+            </>
+          )}
+        </motion.button>
       </form>
+
+      <div className="relative my-8">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-slate-100"></div>
+        </div>
+        <div className="relative flex justify-center text-xs uppercase tracking-widest font-black">
+          <span className="bg-white/50 px-4 text-slate-400 backdrop-blur-sm">veya şununla devam et</span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <button 
+          onClick={() => handleSocialLogin('google')}
+          className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-slate-100 rounded-xl hover:bg-slate-50 hover:border-slate-200 transition-all font-semibold text-slate-700 shadow-sm active:scale-95 group"
+        >
+          <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4 grayscale group-hover:grayscale-0" />
+          Google
+        </button>
+        <button 
+          onClick={() => handleSocialLogin('github')}
+          className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-slate-100 rounded-xl hover:bg-slate-50 hover:border-slate-200 transition-all font-semibold text-slate-700 shadow-sm active:scale-95"
+        >
+          <Github size={18} />
+          GitHub
+        </button>
+      </div>
 
       <div className="mt-6 text-center">
         <p className="text-sm text-slate-500">
