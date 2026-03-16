@@ -270,10 +270,9 @@ export default function LandingPage() {
           </div>
           
           <div className="flex gap-8 text-sm text-white/40">
-            <a href="#" className="hover:text-white transition-colors">Twitter</a>
-            <a href="#" className="hover:text-white transition-colors">GitHub</a>
-            <a href="#" className="hover:text-white transition-colors">Gizlilik</a>
-            <a href="#" className="hover:text-white transition-colors">Şartlar</a>
+            <a href="https://github.com/ersinyldrm97/AITaskFlow.git" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">GitHub</a>
+            <Link to="/privacy" className="hover:text-white transition-colors">Gizlilik Policy</Link>
+            <Link to="/terms" className="hover:text-white transition-colors">Kullanım Şartları</Link>
           </div>
         </div>
       </footer>

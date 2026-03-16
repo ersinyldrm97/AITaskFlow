@@ -13,6 +13,9 @@ import ProjectDetailPage from './pages/ProjectDetailPage';
 import TasksPage from './pages/TasksPage';
 import TeamPage from './pages/TeamPage';
 import SettingsPage from './pages/SettingsPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import TermsOfServicePage from './pages/TermsOfServicePage';
+
 
 function App() {
   const { initialize, isLoading } = useAuthStore();
@@ -34,6 +37,9 @@ function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<LandingPage />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms" element={<TermsOfServicePage />} />
+
         
         {/* Auth Routes */}
         <Route element={<AuthLayout />}>
