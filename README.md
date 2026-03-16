@@ -6,12 +6,12 @@ AITaskFlow, modern işletmeler ve ekipler için tasarlanmış, **Supabase** back
 
 ## ✨ Özellikler
 
--   **💎 Ultra-Premium UI:** Glassmorphism ve modern karanlık tema (Dark Mode) ile göz alıcı kullanıcı deneyimi.
--   **⚡ Real-time Veritabanı:** Supabase entegrasyonu ile tüm veriler anlık olarak senkronize edilir.
--   **🤖 Otonom Ajanlar:** Arka planda çalışan 5 farklı yardımcı ajan (Sistem sağlığı, Yedekleme, Deadline takibi, Raporlama, Bakım).
--   **📈 Bento-Grid Dashboard:** Verilerinizi ve projelerinizi modern bir "Bento" yapısında inceleyin.
--   **🔐 Güvenli Kimlik Doğrulama:** Supabase Auth ile güvenli giriş ve kayıt sistemleri.
--   **📁 Proje Yönetimi:** Sürükle-bırak (Drag & Drop) destekli Kanban tahtası ve detaylı proje takibi.
+- **💎 Ultra-Premium UI:** Glassmorphism ve modern karanlık tema (Dark Mode) ile göz alıcı kullanıcı deneyimi.
+- **⚡ Real-time Veritabanı:** Supabase entegrasyonu ile tüm veriler anlık olarak senkronize edilir.
+- **🤖 Otonom Ajanlar:** Arka planda çalışan 5 farklı yardımcı ajan (Sistem sağlığı, Yedekleme, Deadline takibi, Raporlama, Bakım).
+- **📈 Bento-Grid Dashboard:** Verilerinizi ve projelerinizi modern bir "Bento" yapısında inceleyin.
+- **🔐 Güvenli Kimlik Doğrulama:** Supabase Auth ile güvenli giriş ve kayıt sistemleri.
+- **📁 Proje Yönetimi:** Sürükle-bırak (Drag & Drop) destekli Kanban tahtası ve detaylı proje takibi.
 
 ## 🤖 AI Ajanlar Sistemi
 
@@ -28,18 +28,21 @@ AITaskFlow, modern işletmeler ve ekipler için tasarlanmış, **Supabase** back
 Projeyi yerelinizde çalıştırmak için:
 
 1.  **Depoyu kopyalayın:**
+
     ```bash
     git clone https://github.com/ersinyldrm97/AITaskFlow.git
     cd AITaskFlow
     ```
 
 2.  **Bağımlılıkları yükleyin:**
+
     ```bash
     npm install
     ```
 
 3.  **Çevresel değişkenleri (.env) ayarlayın:**
     Kök dizinde bir `.env` dosyası oluşturun ve Supabase bilgilerinizi ekleyin:
+
     ```env
     VITE_SUPABASE_URL=your_supabase_url
     VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
@@ -53,16 +56,19 @@ Projeyi yerelinizde çalıştırmak için:
 ## 🚀 Ajanları Çalıştırma
 
 Herhangi bir ajanı bağımsız olarak şu komutla tetikleyebilirsiniz:
+
 ```bash
 node ajanlar/ajan1.js
 ```
 
 ## 🏛️ Mimari
--   **Frontend:** React 18, Vite, Tailwind CSS, Framer Motion
--   **State Management:** Zustand
--   **Backend:** Supabase (PostgreSQL, Auth, RLS)
--   **Icons:** Lucide React
+
+- **Frontend:** React 18, Vite, Tailwind CSS, Framer Motion
+- **State Management:** Zustand
+- **Backend:** Supabase (PostgreSQL, Auth, RLS)
+- **Icons:** Lucide React
 
 ---
+
 ⭐ Bu projeyi beğendiyseniz yıldız vermeyi unutmayın!
-© 2024 **AITaskFlow Digital** - Visionaries için tasarlandı.
+© 2026 **AITaskFlow Digital** - Visionaries için tasarlandı.
