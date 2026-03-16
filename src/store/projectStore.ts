@@ -7,7 +7,7 @@ interface ProjectState {
   isLoading: boolean;
   hasLoaded: boolean;
   fetchProjects: () => Promise<void>;
-  addProject: (project: Omit<Project, 'id' | 'createdAt' | 'color'>) => Promise<void>;
+  addProject: (project: Omit<Project, 'id' | 'createdAt' | 'color' | 'workspaceId'>) => Promise<void>;
   updateProject: (id: string, data: Partial<Project>) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
   getProject: (id: string) => Project | undefined;
