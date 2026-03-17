@@ -1,11 +1,13 @@
-import { motion } from 'framer-motion';
-import { Check, Zap, Star, Shield, Rocket, ArrowRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Check, Star, Shield, Rocket } from 'lucide-react';
+import { useState } from 'react';
 import { useAuthStore } from '../store/authStore';
 import Button from '../components/ui/Button';
+import StripeCheckoutMock from '../components/payment/StripeCheckoutMock';
 
 export default function PricingPage() {
-  const navigate = useNavigate();
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const { currentUser } = useAuthStore();
 
   const plans = [
     {
@@ -19,7 +21,7 @@ export default function PricingPage() {
         'Temel İstatistikler',
         'Topluluk Desteği'
       ],
-      buttonText: 'Mevcut Plan',
+      buttonText: currentUser?.plan === 'pro' ? 'Downgrade' : 'Mevcut Plan',
       buttonVariant: 'outline' as const,
       popular: false,
     },
@@ -35,30 +37,15 @@ export default function PricingPage() {
         '7/24 Öncelikli Destek',
         'Özel Tema Modları'
       ],
-      buttonText: 'Pro\'ya Yükselt',
-      buttonVariant: 'primary' as const,
+      buttonText: currentUser?.plan === 'pro' ? 'Mevcut Plan' : 'Pro\'ya Yükselt',
+      buttonVariant: currentUser?.plan === 'pro' ? 'outline' : 'primary' as const,
       popular: true,
     }
   ];
 
-  const { updateProfile, currentUser } = useAuthStore();
-
-  const handleUpgrade = async (planName: string) => {
-    if (planName === 'Pro') {
-      // Future: Stripe Integration will trigger here
-      alert('Stripe ödeme sistemine yönlendiriliyorsunuz... (Demo: Ödeme başarılı sayılıyor)');
-      
-      // Real Database Update
-      const { error } = await updateProfile({ plan: 'pro' as any });
-      
-      if (!error) {
-        // Simulate Stripe Redirect Delay
-        setTimeout(() => {
-          navigate('/success');
-        }, 1000);
-      }
-    } else {
-      navigate('/dashboard');
+  const handleUpgrade = (planName: string) => {
+    if (planName === 'Pro' && currentUser?.plan !== 'pro') {
+      setIsCheckoutOpen(true);
     }
   };
 
@@ -152,7 +139,7 @@ export default function PricingPage() {
 
               <Button
                 onClick={() => handleUpgrade(plan.name)}
-                variant={plan.buttonVariant}
+                variant={plan.buttonVariant as any}
                 className={`w-full py-4 h-auto text-xs font-black uppercase tracking-[0.2em] rounded-2xl transition-all ${
                   plan.popular 
                     ? 'bg-primary-600 hover:bg-primary-500 text-white shadow-xl shadow-primary-600/30' 
@@ -195,6 +182,17 @@ export default function PricingPage() {
           </div>
         </motion.div>
       </div>
+
+      <AnimatePresence>
+        {isCheckoutOpen && (
+          <StripeCheckoutMock
+            isOpen={isCheckoutOpen}
+            onClose={() => setIsCheckoutOpen(false)}
+            planName="Pro"
+            amount="9.99"
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

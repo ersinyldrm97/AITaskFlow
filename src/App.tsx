@@ -18,6 +18,7 @@ import SuccessPage from './pages/SuccessPage';
 import OnboardingPage from './pages/OnboardingPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
+import TestingDashboard from './pages/TestingDashboard';
 import ToastContainer from './components/ui/ToastContainer';
 
 function App() {
@@ -62,6 +63,7 @@ function App() {
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/success" element={<SuccessPage />} />
+            <Route path="/testing" element={<TestingDashboard />} />
           </Route>
         </Route>
 
