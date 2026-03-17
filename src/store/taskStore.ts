@@ -7,7 +7,7 @@ interface TaskState {
   isLoading: boolean;
   hasLoaded: boolean;
   fetchTasks: () => Promise<void>;
-  addTask: (task: Omit<Task, 'id' | 'createdAt'>) => Promise<void>;
+  addTask: (task: Omit<Task, 'id' | 'createdAt' | 'workspaceId'>) => Promise<void>;
   updateTask: (id: string, data: Partial<Task>) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   getTasksByProject: (projectId: string) => Task[];

@@ -150,10 +150,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     const currentUser = get().currentUser;
     if (!currentUser) return { error: new Error('Oturum açmadınız') };
     
-    const { error } = await supabase.from('profiles').update({
-      name: data.name,
-      avatar: data.avatar,
-    }).eq('id', currentUser.id);
+    // Yalnızca profilde mevcut olan alanları güncelle
+    const { error } = await supabase.from('profiles').update(data).eq('id', currentUser.id);
 
     if (!error) {
       set({ currentUser: { ...currentUser, ...data } });

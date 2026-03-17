@@ -7,7 +7,7 @@ interface TeamState {
   isLoading: boolean;
   hasLoaded: boolean;
   fetchMembers: () => Promise<void>;
-  addMember: (member: Omit<TeamMember, 'id' | 'joinedAt'>) => Promise<void>;
+  addMember: (member: Omit<TeamMember, 'id' | 'joinedAt' | 'workspaceId'>) => Promise<void>;
   updateMember: (id: string, data: Partial<TeamMember>) => Promise<void>;
   deleteMember: (id: string) => Promise<void>;
   getMember: (id: string) => TeamMember | undefined;
