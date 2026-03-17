@@ -220,7 +220,7 @@ export default function LandingPage() {
               
               <h3 className="text-xl font-medium text-white/70 mb-2">Studio</h3>
               <div className="flex items-baseline gap-2 mb-6">
-                <span className="text-5xl font-bold">$29</span>
+                <span className="text-5xl font-bold">$9</span>
                 <span className="text-white/50">/ ay</span>
               </div>
               <p className="text-white/50 text-sm mb-8 pb-8 border-b border-white/10">Büyüyen ekipler ve işletmeler için sınırsız güç.</p>
